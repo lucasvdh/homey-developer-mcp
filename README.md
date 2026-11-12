@@ -38,6 +38,8 @@ Homey groups crashes by their exact stack, so an error that mentions a device id
 
 A report or crash is stored on the build the user was running. The tools look at the newest 5 builds by default; pass `builds` or `buildId` to look further back.
 
+**Website:** [lucasvdh.github.io/homey-developer-mcp](https://lucasvdh.github.io/homey-developer-mcp/)
+
 ## Background
 
 How this server came about, what it is based on and why it works the way it does: [docs/background.md](docs/background.md). What it uses of Athom's apps API, including the format of crash entries and diagnostic reports: [docs/apps-api.md](docs/apps-api.md).

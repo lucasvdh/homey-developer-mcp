@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homey Developer MCP</title>
+<meta name="description" content="An MCP server for Homey app developers: crashes, diagnostic reports, builds and install stats of your own apps, right in your AI assistant.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1117'/%3E%3Cpath d='M9 11l5 5-5 5M16 21h7' stroke='%2334d399' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0b0e14;
+  --bg-elev: #11151d;
+  --bg-code: #0d1117;
+  --border: #1f2633;
+  --border-strong: #2d3646;
+  --text: #e6e9ef;
+  --text-dim: #9aa4b2;
+  --text-faint: #6b7584;
+  --accent: #34d399;
+  --accent-dim: rgba(52, 211, 153, .12);
+  --warn: #fbbf24;
+  --warn-dim: rgba(251, 191, 36, .10);
+  --tok-key: #7dd3fc;
+  --tok-str: #fca5a5;
+  --tok-cmt: #6b7584;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #fbfcfd;
+    --bg-elev: #ffffff;
+    --bg-code: #f4f6f8;
+    --border: #e3e7ec;
+    --border-strong: #cfd6de;
+    --text: #111827;
+    --text-dim: #4b5563;
+    --text-faint: #6b7280;
+    --accent: #059669;
+    --accent-dim: rgba(5, 150, 105, .10);
+    --warn: #b45309;
+    --warn-dim: rgba(180, 83, 9, .08);
+    --tok-key: #0369a1;
+    --tok-str: #b91c1c;
+    --tok-cmt: #6b7280;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #fbfcfd; --bg-elev: #ffffff; --bg-code: #f4f6f8; --border: #e3e7ec; --border-strong: #cfd6de;
+  --text: #111827; --text-dim: #4b5563; --text-faint: #6b7280; --accent: #059669; --accent-dim: rgba(5,150,105,.10);
+  --warn: #b45309; --warn-dim: rgba(180,83,9,.08); --tok-key: #0369a1; --tok-str: #b91c1c; --tok-cmt: #6b7280;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, kbd { font-family: var(--mono); }
+:not(pre) > code {
+  font-size: .88em;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: .1em .35em;
+}
+
+.wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+
+/* Top bar */
+.top {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+.brand { font-family: var(--mono); font-weight: 600; color: var(--text); white-space: nowrap; }
+.brand span { color: var(--accent); }
+.top nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; }
+.top nav a { color: var(--text-dim); }
+.top nav a:hover { color: var(--text); text-decoration: none; }
+@media (max-width: 640px) { .top nav .hide-sm { display: none; } }
+
+/* Hero */
+.hero { padding-top: 72px; padding-bottom: 40px; }
+.eyebrow {
+  font-family: var(--mono); font-size: 13px; color: var(--accent);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-size: clamp(32px, 6vw, 52px); line-height: 1.08; letter-spacing: -.025em;
+  margin: 0 0 18px; font-weight: 700;
+}
+.hero p.lead { font-size: 19px; color: var(--text-dim); max-width: 640px; margin: 0 0 28px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 500 14px var(--sans); padding: 10px 16px; border-radius: 8px;
+  border: 1px solid var(--border-strong); color: var(--text); background: var(--bg-elev);
+}
+.btn:hover { text-decoration: none; border-color: var(--text-faint); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #04130d; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn svg { width: 16px; height: 16px; }
+
+/* Code blocks */
+.code {
+  position: relative;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin: 16px 0;
+}
+.code pre {
+  margin: 0; padding: 16px 52px 16px 18px; overflow-x: auto;
+  font-size: 13.5px; line-height: 1.65;
+}
+.code .label {
+  font: 12px var(--mono); color: var(--text-faint);
+  padding: 8px 18px 0;
+}
+.copy {
+  position: absolute; top: 8px; right: 8px;
+  font: 12px var(--mono); color: var(--text-dim);
+  background: var(--bg-elev); border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 8px; cursor: pointer;
+}
+.copy:hover { color: var(--text); border-color: var(--border-strong); }
+.code .label + .copy { top: 6px; }
+.p { color: var(--accent); user-select: none; }
+.k { color: var(--tok-key); }
+.s { color: var(--tok-str); }
+.c { color: var(--tok-cmt); }
+
+/* Terminal demo */
+.term {
+  margin-top: 44px;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.term-bar {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font: 12px var(--mono); color: var(--text-faint);
+}
+.term-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--border-strong); display: inline-block; }
+.term-bar b { font-weight: 400; margin-left: 8px; }
+.term pre { margin: 0; padding: 18px; font-size: 13.5px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+.term .you { color: var(--text); }
+.term .tool { color: var(--accent); }
+.term .dim { color: var(--text-faint); }
+
+/* Sections */
+section { padding: 56px 0 8px; }
+section h2 {
+  font-size: 26px; letter-spacing: -.015em; margin: 0 0 8px;
+}
+section h2 .hash { font-family: var(--mono); color: var(--text-faint); font-weight: 400; margin-right: 6px; }
+section > .wrap > p.sub { color: var(--text-dim); margin: 0 0 24px; max-width: 680px; }
+h3 { font-size: 17px; margin: 28px 0 6px; }
+
+/* Prompts grid */
+.prompts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.prompt {
+  border: 1px solid var(--border); background: var(--bg-elev); border-radius: 10px;
+  padding: 14px 16px; font-size: 15px;
+}
+.prompt q { quotes: none; color: var(--text); }
+.prompt small { display: block; margin-top: 8px; font: 12px var(--mono); color: var(--text-faint); }
+
+/* Tool table */
+.tools { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.tools th, .tools td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.tools th { font: 600 12px var(--mono); color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; }
+.tools td:first-child { white-space: nowrap; }
+.tools td:first-child code { color: var(--accent); background: none; border: 0; padding: 0; font-size: 14px; }
+.tools td .args { display: block; font: 12.5px var(--mono); color: var(--text-faint); margin-top: 3px; }
+.table-scroll { overflow-x: auto; }
+@media (max-width: 640px) { .tools td:first-child { white-space: normal; } }
+
+.note {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; margin: 20px 0; font-size: 15px; color: var(--text-dim);
+  background: var(--bg-elev);
+}
+.note.warn { border-color: color-mix(in srgb, var(--warn) 35%, var(--border)); background: var(--warn-dim); }
+.note strong { color: var(--text); }
+
+/* Tabs */
+.tabs { margin-top: 8px; }
+.tablist { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  font: 500 14px var(--sans); color: var(--text-dim);
+  padding: 10px 12px; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.tab:focus-visible, .copy:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.panel { padding-top: 6px; }
+.panel[hidden] { display: none; }
+.panel p { color: var(--text-dim); margin: 14px 0 0; font-size: 15px; }
+
+/* Steps */
+ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; }
+ol.steps > li { counter-increment: s; position: relative; padding-left: 40px; margin: 0 0 22px; }
+ol.steps > li::before {
+  content: counter(s); position: absolute; left: 0; top: 0;
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--border-strong); color: var(--accent);
+  font: 600 13px/24px var(--mono); text-align: center;
+}
+ol.steps > li > strong { display: block; margin-bottom: 2px; }
+ol.steps > li > p { margin: 0; color: var(--text-dim); font-size: 15px; }
+
+/* Kinds */
+.kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
+.kind { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--bg-elev); }
+.kind code { display: block; font-size: 12px; color: var(--text-faint); margin-top: 8px; white-space: normal; background: none; border: 0; padding: 0; }
+.kind strong { font-size: 15px; }
+.kind p { margin: 4px 0 0; font-size: 14px; color: var(--text-dim); }
+
+footer { margin-top: 72px; border-top: 1px solid var(--border); padding: 28px 0 48px; font-size: 14px; color: var(--text-faint); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
+footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
+footer a { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><span>&gt;</span> homey-developer-mcp</a>
+    <nav>
+      <a href="#tools">Tools</a>
+      <a href="#install">Install</a>
+      <a class="hide-sm" href="#how">How it works</a>
+      <a href="https://github.com/lucasvdh/homey-developer-mcp">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <p class="eyebrow">// MCP server for Homey app developers</p>
+    <h1>Ask your AI assistant why your Homey app crashes.</h1>
+    <p class="lead">Crashes, user-submitted diagnostic reports, builds and install stats of your own Homey apps, straight from Athom's apps API into Claude, Cursor, VS Code or any other MCP client. Optionally release builds and submit them for certification too.</p>
+
+    <div class="code">
+      <pre><span class="p">$ </span>claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp</pre>
+      <button class="copy" data-copy="claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp">copy</button>
+    </div>
+
+    <div class="cta">
+      <a class="btn primary" href="#install">Install guide</a>
+      <a class="btn" href="https://github.com/lucasvdh/homey-developer-mcp">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        Source on GitHub
+      </a>
+    </div>
+
+    <div class="term" aria-label="Example conversation">
+      <div class="term-bar"><i></i><i></i><i></i><b>claude</b></div>
+<pre><span class="you">&gt; Any new diagnostic reports for my thermostat app? What's going wrong?</span>
+
+<span class="tool">● list_diagnostic_reports</span><span class="dim">(appId: "com.example.thermostat")</span>
+<span class="dim">  └ 2 reports in the last 5 builds</span>
+<span class="tool">● get_diagnostic_report</span><span class="dim">(logId: "a1b2c3d4-…")</span>
+<span class="dim">  └ user message, 18 lines of stdout, stderr: ETIMEDOUT</span>
+
+The newest report says the device goes unavailable every evening. The log
+shows the poll interval failing with ETIMEDOUT right after the hub's nightly
+firmware check, so the app gives up instead of retrying. A retry with backoff
+in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pre>
+    </div>
+  </div>
+
+  <section id="ask">
+    <div class="wrap">
+      <h2><span class="hash">#</span>Things to ask</h2>
+      <p class="sub">The tools are built for questions you'd otherwise answer by clicking through the developer tools site, build by build.</p>
+      <div class="prompts">
+        <div class="prompt"><q>What are the most frequent crashes of my app, and where in my code do they come from?</q><small>get_crashes</small></div>
+        <div class="prompt"><q>Summarise the diagnostic reports from this week and tell me which ones share a cause.</q><small>list_diagnostic_reports</small></div>
+        <div class="prompt"><q>Did the crash rate go down since build 41?</q><small>list_builds · get_crashes</small></div>
+        <div class="prompt"><q>Is my latest build through processing yet? What did the reviewer say?</q><small>get_build_status</small></div>
+        <div class="prompt"><q>Release build 42 to test, then submit it for certification.</q><small>release_build · submit_for_certification</small></div>
+        <div class="prompt"><q>How are installs of my apps trending over the last 30 days?</q><small>list_apps · get_install_stats</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <div class="wrap">
+      <h2><span class="hash">#</span>Tools</h2>
+      <p class="sub">Read tools are always available. They cover your own apps and the apps of every Developer Organization you're in.</p>
+      <div class="table-scroll">
+        <table class="tools">
+          <thead><tr><th>Tool</th><th>What it returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>list_apps</code></td><td>Your apps with live and test version, installs, rating and crash counts per build.</td></tr>
+            <tr><td><code>list_builds</code><span class="args">appId, limit?</span></td><td>Builds of an app, newest first, with state, installs and crashes.</td></tr>
+            <tr><td><code>get_crashes</code><span class="args">appId, builds?, buildId?, kind?, limit?</span></td><td>Crashes and unhandled rejections, grouped by error and the file and line in your own code. Errors that only differ in a device id count as one.</td></tr>
+            <tr><td><code>list_diagnostic_reports</code><span class="args">appId, builds?, buildId?</span></td><td>Reports users sent with <em>Create diagnostics report</em>: Log ID, their message and a preview of stderr.</td></tr>
+            <tr><td><code>get_diagnostic_report</code><span class="args">appId, logId, builds?</span></td><td>One report in full: user message, stdout and stderr.</td></tr>
+            <tr><td><code>get_build_status</code><span class="args">appId, buildId</span></td><td>State of a build, why processing failed, reviewer comments and Athom's AI review.</td></tr>
+            <tr><td><code>get_install_stats</code><span class="args">appId, days?, perDriver?</span></td><td>Daily installs, optionally per driver.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Write tools</h3>
+      <p style="color:var(--text-dim);margin:0 0 12px;font-size:15px">Only registered when you set <code>HOMEY_MCP_ALLOW_WRITE=1</code>. Without it, your assistant doesn't even see them. They are marked destructive, so clients that support it ask before every call.</p>
+      <div class="table-scroll">
+        <table class="tools">
+          <tbody>
+            <tr><td><code>release_build</code><span class="args">appId, buildId, channel</span></td><td>Puts a build on the <code>test</code> or <code>live</code> channel. Athom only accepts live for a build that passed review.</td></tr>
+            <tr><td><code>submit_for_certification</code><span class="args">appId, buildId, autoRelease?</span></td><td>Sends a build to Athom for review. <code>autoRelease</code> defaults to <code>false</code>, so going live stays a separate step.</td></tr>
+            <tr><td><code>retract_submission</code><span class="args">appId, buildId</span></td><td>Withdraws a build from review.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2><span class="hash">#</span>Install</h2>
+      <p class="sub">You need Node.js 18 or newer and your Athom Personal Access Token. Nothing to clone or build: your MCP client starts the server with <code>npx</code>.</p>
+
+      <ol class="steps">
+        <li>
+          <strong>Copy your Personal Access Token</strong>
+          <p>Open <a href="https://tools.developer.homey.app/me">tools.developer.homey.app/me</a>, scroll to <em>Personal Access Token</em> and copy it. It starts with <code>pat-</code>. It's the same token the Homey CLI uses in CI, so treat it like a password.</p>
+        </li>
+        <li>
+          <strong>Add the server to your client</strong>
+          <div class="tabs" data-tabs>
+            <div class="tablist" role="tablist">
+              <button class="tab" role="tab" aria-selected="true" aria-controls="p-cc" id="t-cc">Claude Code</button>
+              <button class="tab" role="tab" aria-selected="false" aria-controls="p-cd" id="t-cd" tabindex="-1">Claude Desktop</button>
+              <button class="tab" role="tab" aria-selected="false" aria-controls="p-cu" id="t-cu" tabindex="-1">Cursor</button>
+              <button class="tab" role="tab" aria-selected="false" aria-controls="p-vs" id="t-vs" tabindex="-1">VS Code</button>
+              <button class="tab" role="tab" aria-selected="false" aria-controls="p-ot" id="t-ot" tabindex="-1">Other</button>
+            </div>
+
+            <div class="panel" role="tabpanel" id="p-cc" aria-labelledby="t-cc">
+              <div class="code">
+                <pre><span class="p">$ </span>claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp</pre>
+                <button class="copy" data-copy="claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp">copy</button>
+              </div>
+              <p>Add <code>--scope user</code> to use it in every project. To enable the write tools, add <code>--env HOMEY_MCP_ALLOW_WRITE=1</code>. Check it's connected with <code>/mcp</code>.</p>
+            </div>
+
+            <div class="panel" role="tabpanel" id="p-cd" aria-labelledby="t-cd" hidden>
+              <p style="margin-top:6px">Settings → Developer → Edit Config opens <code>claude_desktop_config.json</code>. Add the server and restart Claude Desktop.</p>
+              <div class="code">
+<pre>{
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"homey-developer"</span>: {
+      <span class="k">"command"</span>: <span class="s">"npx"</span>,
+      <span class="k">"args"</span>: [<span class="s">"-y"</span>, <span class="s">"homey-developer-mcp"</span>],
+      <span class="k">"env"</span>: { <span class="k">"HOMEY_PAT"</span>: <span class="s">"pat-..."</span> }
+    }
+  }
+}</pre>
+                <button class="copy" data-copy-json="desktop">copy</button>
+              </div>
+            </div>
+
+            <div class="panel" role="tabpanel" id="p-cu" aria-labelledby="t-cu" hidden>
+              <p style="margin-top:6px">Add this to <code>~/.cursor/mcp.json</code> for every project, or <code>.cursor/mcp.json</code> for one.</p>
+              <div class="code">
+<pre>{
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"homey-developer"</span>: {
+      <span class="k">"command"</span>: <span class="s">"npx"</span>,
+      <span class="k">"args"</span>: [<span class="s">"-y"</span>, <span class="s">"homey-developer-mcp"</span>],
+      <span class="k">"env"</span>: { <span class="k">"HOMEY_PAT"</span>: <span class="s">"pat-..."</span> }
+    }
+  }
+}</pre>
+                <button class="copy" data-copy-json="desktop">copy</button>
+              </div>
+            </div>
+
+            <div class="panel" role="tabpanel" id="p-vs" aria-labelledby="t-vs" hidden>
+              <p style="margin-top:6px">Add this to <code>.vscode/mcp.json</code>. VS Code asks for the token the first time and stores it securely, so it never ends up in the file.</p>
+              <div class="code">
+<pre>{
+  <span class="k">"inputs"</span>: [
+    { <span class="k">"type"</span>: <span class="s">"promptString"</span>, <span class="k">"id"</span>: <span class="s">"homey-pat"</span>, <span class="k">"description"</span>: <span class="s">"Athom Personal Access Token"</span>, <span class="k">"password"</span>: true }
+  ],
+  <span class="k">"servers"</span>: {
+    <span class="k">"homey-developer"</span>: {
+      <span class="k">"type"</span>: <span class="s">"stdio"</span>,
+      <span class="k">"command"</span>: <span class="s">"npx"</span>,
+      <span class="k">"args"</span>: [<span class="s">"-y"</span>, <span class="s">"homey-developer-mcp"</span>],
+      <span class="k">"env"</span>: { <span class="k">"HOMEY_PAT"</span>: <span class="s">"${input:homey-pat}"</span> }
+    }
+  }
+}</pre>
+                <button class="copy" data-copy-json="vscode">copy</button>
+              </div>
+            </div>
+
+            <div class="panel" role="tabpanel" id="p-ot" aria-labelledby="t-ot" hidden>
+              <p style="margin-top:6px">Any client that runs stdio MCP servers works. Point it at this command and pass the token as an environment variable:</p>
+              <div class="code">
+                <pre><span class="p">$ </span>HOMEY_PAT=pat-... npx -y homey-developer-mcp</pre>
+                <button class="copy" data-copy="HOMEY_PAT=pat-... npx -y homey-developer-mcp">copy</button>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <strong>Ask away</strong>
+          <p>Start with <em>"List my Homey apps"</em> to check the token works, then try one of the <a href="#ask">questions above</a>.</p>
+        </li>
+      </ol>
+
+      <h3>Configuration</h3>
+      <div class="table-scroll">
+        <table class="tools">
+          <tbody>
+            <tr><td><code>HOMEY_PAT</code></td><td>Required. Your Athom Personal Access Token.</td></tr>
+            <tr><td><code>HOMEY_MCP_ALLOW_WRITE</code></td><td>Set to <code>1</code> to enable <code>release_build</code>, <code>submit_for_certification</code> and <code>retract_submission</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <h2><span class="hash">#</span>How it works</h2>
+      <p class="sub">The server exchanges your token for a short-lived apps API token, the same way the Homey CLI does, and calls <code>apps-api.athom.com</code>. Athom returns three kinds of entries from one crash endpoint. The server tells them apart by how the entry opens:</p>
+      <div class="kinds">
+        <div class="kind"><strong>Diagnostic report</strong><p>Sent by a user from your app's settings. Split into Log ID, their message, stdout and stderr.</p><code>Note: this log has been manually submitted by a user.</code></div>
+        <div class="kind"><strong>Unhandled rejection</strong><p>A promise you didn't catch. Didn't necessarily crash the app, but counted every time.</p><code>Note: this e-mail is sent because an unhandledRejection occurred…</code></div>
+        <div class="kind"><strong>Crash</strong><p>Everything else: the stack trace itself, starting with the error.</p><code>TypeError: Cannot read properties of undefined…</code></div>
+      </div>
+      <p style="color:var(--text-dim);font-size:15px;margin-top:20px">Homey groups crashes by their exact stack, so an error that mentions a device id gets a separate group per device. <code>get_crashes</code> regroups them by error message and the first frame in your own code, so the counts add up per actual bug. Reports and crashes are stored on the build the user was running; the tools look at your newest 5 builds unless you ask for more.</p>
+
+      <h3>Waiting for a build</h3>
+      <p style="color:var(--text-dim);font-size:15px;margin:0">An MCP server only answers when called, so it can't notify you. In Claude Code, run <code>/loop</code> with <code>get_build_status</code> while you wait. For a push notification on your phone, use the flow triggers of <a href="https://homey.app/a/codes.lucasvdh.developer-tools">App Insights for Developers</a> on your Homey.</p>
+
+      <div class="note warn"><strong>Privacy.</strong> Diagnostic reports contain what your users wrote and your app's logs from their Homey, including device names. Whatever the tools return reaches the AI assistant you connect. Only connect one you're comfortable sharing that with.</div>
+
+      <p style="color:var(--text-dim);font-size:15px">More on the design decisions and the parts of the apps API it relies on: <a href="https://github.com/lucasvdh/homey-developer-mcp/blob/main/docs/background.md">background</a> and <a href="https://github.com/lucasvdh/homey-developer-mcp/blob/main/docs/apps-api.md">apps API notes</a>.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Open source, GPL-3.0. Not affiliated with or endorsed by Athom.</span>
+    <nav>
+      <a href="https://github.com/lucasvdh/homey-developer-mcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/homey-developer-mcp">npm</a>
+      <a href="https://github.com/lucasvdh/homey-developer-mcp/issues">Issues</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var snippets = {
+    desktop: JSON.stringify({mcpServers: {'homey-developer': {command: 'npx', args: ['-y', 'homey-developer-mcp'], env: {HOMEY_PAT: 'pat-...'}}}}, null, 2),
+    vscode: JSON.stringify({
+      inputs: [{type: 'promptString', id: 'homey-pat', description: 'Athom Personal Access Token', password: true}],
+      servers: {'homey-developer': {type: 'stdio', command: 'npx', args: ['-y', 'homey-developer-mcp'], env: {HOMEY_PAT: '${input:homey-pat}'}}}
+    }, null, 2)
+  };
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.dataset.copy || snippets[btn.dataset.copyJson] || '';
+      var done = function () {
+        btn.textContent = 'copied';
+        setTimeout(function () { btn.textContent = 'copy'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { btn.textContent = 'failed'; });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = 'failed'; }
+        ta.remove();
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-tabs]').forEach(function (root) {
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+    function select(tab) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on);
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+    }
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { select(tab); });
+      tab.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        select(next); next.focus();
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
