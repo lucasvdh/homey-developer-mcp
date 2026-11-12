@@ -11,6 +11,9 @@ if (!token) {
   process.exit(1);
 }
 
+/** Tools that change builds are only offered when the user opts in. */
+const allowWrite = ['1', 'true', 'yes'].includes((process.env.HOMEY_MCP_ALLOW_WRITE ?? '').trim().toLowerCase());
+
 const api = new AthomApi(token);
 const server = new McpServer({name: 'homey-developer', version: '0.1.0'});
 
@@ -161,6 +164,80 @@ server.registerTool('get_install_stats', {
   );
   return {installs, drivers};
 }));
+
+async function buildStatus(appId: string, buildId: number) {
+  const [build, comments, agentReview] = await Promise.allSettled([
+    api.getBuild(appId, buildId),
+    api.getSubmissionComments(appId, buildId),
+    api.getAgentReview(appId, buildId),
+  ]);
+  if (build.status === 'rejected') throw build.reason;
+  const {id, version, state, stateMeta, stateChangedAt} = build.value;
+  const settled = (result: PromiseSettledResult<unknown>) =>
+      result.status === 'fulfilled' ? result.value : {error: (result.reason as Error).message};
+  return {
+    build: id,
+    version,
+    state,
+    ...(stateMeta !== undefined ? {stateMeta} : {}),
+    stateChangedAt,
+    submissionComments: settled(comments),
+    agentReview: settled(agentReview),
+  };
+}
+
+server.registerTool('get_build_status', {
+  title: 'Get the status of a build',
+  description: 'State of one build (waiting_for_files, processing, processing_failed, draft, test, in_review, '
+      + 'reviewed_approved, reviewed_rejected, live, superseded), why processing failed, the reviewer\'s comments '
+      + 'and Athom\'s AI review. Call it repeatedly to wait for a build to get through processing or review.',
+  inputSchema: {appId, buildId: z.number().int().describe('Build id, from list_builds')},
+  annotations: {readOnlyHint: true},
+}, ({appId, buildId}) => run(() => buildStatus(appId, buildId)));
+
+if (allowWrite) {
+  const write = {readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true};
+
+  server.registerTool('release_build', {
+    title: 'Release a build to test or live',
+    description: 'Puts a build on the test channel (testers get it) or the live channel (every user gets it). '
+        + 'Athom only allows live for a build that was approved in review. Returns the new status.',
+    inputSchema: {
+      appId,
+      buildId: z.number().int().describe('Build id, from list_builds'),
+      channel: z.enum(['test', 'live']),
+    },
+    annotations: write,
+  }, ({appId, buildId, channel}) => run(async () => {
+    await api.updateBuildChannel(appId, buildId, channel);
+    return buildStatus(appId, buildId);
+  }));
+
+  server.registerTool('submit_for_certification', {
+    title: 'Submit a build for certification',
+    description: 'Sends a build to Athom for review. With autoRelease it goes live for every user as soon as it is '
+        + 'approved; without it, release it afterwards with release_build. Returns the new status.',
+    inputSchema: {
+      appId,
+      buildId: z.number().int().describe('Build id, from list_builds'),
+      autoRelease: z.boolean().optional().describe('Go live automatically once approved (default false)'),
+    },
+    annotations: write,
+  }, ({appId, buildId, autoRelease}) => run(async () => {
+    await api.createSubmission(appId, buildId, autoRelease ?? false);
+    return buildStatus(appId, buildId);
+  }));
+
+  server.registerTool('retract_submission', {
+    title: 'Retract a submission',
+    description: 'Withdraws a build from Athom\'s review. Returns the new status.',
+    inputSchema: {appId, buildId: z.number().int().describe('Build id, from list_builds')},
+    annotations: write,
+  }, ({appId, buildId}) => run(async () => {
+    await api.retractSubmission(appId, buildId);
+    return buildStatus(appId, buildId);
+  }));
+}
 
 server.connect(new StdioServerTransport()).catch((error) => {
   console.error(error);

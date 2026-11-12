@@ -95,6 +95,9 @@ export interface BuildDetail {
   id: number;
   version: string;
   state: string;
+  /** Why processing failed, when state is processing_failed. */
+  stateMeta?: unknown;
+  stateChangedAt?: string;
   changelog?: LocalizedData;
   readme?: LocalizedData;
   permissions?: string[];
@@ -265,6 +268,44 @@ export class AthomApi {
     return JSON.parse(await this.authedGet(`/api/v1/app/${appId}/install/stats`)) as StatPoint[];
   }
 
+  /** Releases a build to the test or live channel. Athom only allows live after the build was approved in review. */
+  public async updateBuildChannel(appId: string, buildId: number, channel: 'test' | 'live'): Promise<void> {
+    await this.authedPost(`/api/v1/app/${appId}/build/${buildId}/channel`, {channel});
+  }
+
+  /** Submits a build for certification. With autoRelease it goes live as soon as it is approved. */
+  public async createSubmission(appId: string, buildId: number, autoRelease: boolean): Promise<void> {
+    await this.authedPost(`/api/v1/app/${appId}/build/${buildId}/submission`, {autoRelease});
+  }
+
+  public async retractSubmission(appId: string, buildId: number): Promise<void> {
+    await this.authedPost(`/api/v1/app/${appId}/build/${buildId}/submission/retract`);
+  }
+
+  public async getSubmissionComments(appId: string, buildId: number): Promise<unknown> {
+    return JSON.parse(await this.authedGet(`/api/v1/app/${appId}/build/${buildId}/submission/comment`));
+  }
+
+  public async getAgentReview(appId: string, buildId: number): Promise<unknown> {
+    return JSON.parse(await this.authedGet(`/api/v1/app/${appId}/build/${buildId}/agent-review`));
+  }
+
+  private async authedPost(path: string, body?: object): Promise<string> {
+    const jwt = await this.getDelegatedJWT();
+    const payload = JSON.stringify(body ?? {});
+    return this.request({
+      method: 'POST',
+      hostname: 'apps-api.athom.com',
+      path,
+      headers: {
+        'authorization': `Bearer ${jwt}`,
+        'content-type': 'application/json',
+        'content-length': String(Buffer.byteLength(payload)),
+      },
+      maxRedirects: 20,
+    }, payload);
+  }
+
   private async authedGet(path: string): Promise<string> {
     const jwt = await this.getDelegatedJWT();
     return this.request({
@@ -321,7 +362,7 @@ export class AthomApi {
     return undefined;
   }
 
-  private request(options: RequestOptions): Promise<string> {
+  private request(options: RequestOptions, payload?: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res: IncomingMessage) => {
         const chunks: Buffer[] = [];
@@ -340,7 +381,8 @@ export class AthomApi {
             return reject(new Error(`Request failed with status ${status}: ${body || '<empty body>'}`));
           }
 
-          if (!body) {
+          // Actions answer 204 No Content; only reads need a body.
+          if (!body && status !== 204) {
             return reject(new Error('Empty response body'));
           }
 
@@ -351,6 +393,7 @@ export class AthomApi {
       });
 
       req.on('error', reject);
+      if (payload !== undefined) req.write(payload);
       req.end();
     });
   }

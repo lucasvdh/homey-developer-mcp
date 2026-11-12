@@ -24,6 +24,23 @@ The JWT expires; `AthomApi` reads `exp` from its payload and requests a new one 
 | `GET /app/{appId}/build/{buildId}/crash` | Crashes, unhandled rejections and diagnostic reports |
 | `GET /app/{appId}/install/stats` | Installs per day |
 | `GET /app/{appId}/drivers/stats` | Installs per driver per day |
+| `GET /app/{appId}/build/{buildId}` | State of a build, with `stateMeta` explaining a failed processing |
+| `GET /app/{appId}/build/{buildId}/submission/comment` | The reviewer's comments |
+| `GET /app/{appId}/build/{buildId}/agent-review` | Athom's AI review of the build |
+
+Write endpoints, only with `HOMEY_MCP_ALLOW_WRITE`. They answer `204 No Content`.
+
+| Endpoint | Body | Used for |
+|---|---|---|
+| `POST /app/{appId}/build/{buildId}/channel` | `{"channel": "test"}` or `{"channel": "live"}` | Releasing a build. Live is only accepted after approval. |
+| `POST /app/{appId}/build/{buildId}/submission` | `{"autoRelease": false}` | Submitting for certification. The developer site defaults `autoRelease` to `true`. |
+| `POST /app/{appId}/build/{buildId}/submission/retract` | none | Withdrawing from review |
+
+The channel values come from the developer site's bundle (`handlePublishToTest` and `handlePublishToLive`); the specification only says `channel` is a string.
+
+## Build states
+
+From the developer site's bundle: `waiting_for_files` → `processing` (or `processing_failed`) → `draft` → `test` → `in_review` → `reviewed_approved` or `reviewed_rejected` → `live` → `superseded`. The developer site shows `stateMeta` as the reason when processing failed. The site polls the AI review every 30 seconds while a build page is open.
 
 A build's `crashes` count includes diagnostic reports, so a build with 0 has neither.
 

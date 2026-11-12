@@ -1,6 +1,6 @@
 # Homey Developer MCP
 
-An [MCP](https://modelcontextprotocol.io) server for Homey app developers. It gives an AI assistant read-only access to the crashes, diagnostic reports, builds and install stats of **your own** Homey apps, through Athom's apps API.
+An [MCP](https://modelcontextprotocol.io) server for Homey app developers. It gives an AI assistant access to the crashes, diagnostic reports, builds and install stats of **your own** Homey apps through Athom's apps API, and optionally lets it release builds and submit them for certification.
 
 ## Tools
 
@@ -12,8 +12,23 @@ An [MCP](https://modelcontextprotocol.io) server for Homey app developers. It gi
 | `list_diagnostic_reports` | Reports users submitted with *Create diagnostics report*, with their message and a stderr preview |
 | `get_diagnostic_report` | One report in full: user message, stdout and stderr |
 | `get_install_stats` | Daily installs, optionally per driver |
+| `get_build_status` | State of a build, why processing failed, reviewer comments and Athom's AI review |
 
-Everything is read-only. The server never publishes builds, replies to users or changes settings.
+### Write tools
+
+Only available when `HOMEY_MCP_ALLOW_WRITE=1` is set; without it the client doesn't see them at all.
+
+| Tool | What it does |
+|---|---|
+| `release_build` | Puts a build on the `test` or `live` channel. Athom only allows live for a build that was approved in review. |
+| `submit_for_certification` | Sends a build to Athom for review. `autoRelease` (default `false`) makes it go live as soon as it's approved. |
+| `retract_submission` | Withdraws a build from review |
+
+They are marked as destructive, so clients that support it ask for confirmation before each call. The server never replies to users or changes app settings.
+
+### Waiting for a build
+
+An MCP server can't notify you by itself. To wait for a build in Claude Code, have it call `get_build_status` periodically, for example with `/loop`. That only runs while the session is open. For notifications on your phone, use the flow triggers of [App Insights for Developers](https://homey.app/a/codes.lucasvdh.developer-tools), such as *The state of the test build has changed* and *The test build was approved*.
 
 ### How crashes and reports are told apart
 
@@ -37,6 +52,8 @@ You need your **Personal Access Token** (it starts with `pat-`). You'll find it 
 claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp
 ```
 
+Add `--env HOMEY_MCP_ALLOW_WRITE=1` to enable the write tools.
+
 ### Claude Desktop, Cursor and other clients
 
 ```json
@@ -50,6 +67,8 @@ claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer
   }
 }
 ```
+
+Add `"HOMEY_MCP_ALLOW_WRITE": "1"` to `env` to enable the write tools.
 
 ## Privacy
 

@@ -38,11 +38,21 @@ The server does not live inside the Homey app's repository:
 
 `src/AthomApi.ts` is a **copy** of `lib/AthomApi.ts` from the app, not a shared package. It is about 300 lines with no Homey dependencies. A shared package only pays off once both sides keep needing the same changes. Until then, port fixes by hand in either direction.
 
-### Read-only
+### Write tools behind an opt-in
 
-The tools only read. Publishing builds, changing settings or replying to users is out of scope. A server that an AI assistant calls on its own should not be able to change anything visible to users.
+The first version only read. Releasing and submitting builds was added afterwards, behind `HOMEY_MCP_ALLOW_WRITE`:
 
-The apps API does have `POST /app/crash/{crashId}/reply`, but the crash response contains no id to pass to it (see [apps-api.md](apps-api.md#what-is-not-there)).
+- **Releasing to test** is easy to undo: the next build replaces it.
+- **Submitting for certification** sends the build to Athom's reviewers. `autoRelease` defaults to `false`, unlike on the developer site, so going live stays a separate step.
+- **Releasing to live** was first left out, on the grounds that it reaches every user. It was added after all: Athom only allows live for a build that passed review, so the quality question has already been answered by a person at Athom. What remains is *when* to release, which is the developer's call. The project is open source and comes without warranty.
+
+The write tools are not registered at all without the opt-in, so someone who only wants to read crashes can't publish by accident. They carry `destructiveHint`, so clients that support it ask for confirmation before each call.
+
+Still out of scope: replying to users and changing app settings. The apps API does have `POST /app/crash/{crashId}/reply`, but the crash response contains no id to pass to it (see [apps-api.md](apps-api.md#what-is-not-there)).
+
+### Notifications
+
+An MCP server only answers when it is called, so it can't tell you a build got through. `get_build_status` returns everything needed to check (state, `stateMeta`, reviewer comments, AI review), and a client can call it periodically, such as Claude Code with `/loop`. Push notifications are left to App Insights for Developers on the Homey, which already has flow triggers for build state changes and review outcomes, and works when no AI session is open.
 
 ### Regrouping crashes
 
@@ -72,6 +82,7 @@ Diagnostic reports hold what users wrote and the logs of the app on their Homey,
 
 - `GET …/build/{buildId}/crash/stats`: crashes per day, for a trend.
 - `GET …/build/{buildId}/metrics?start&end&step`: build metrics. The specification doesn't say what it returns; check a real response first.
-- `GET /app/{appId}/review`, `/review/stats`, `/build/{buildId}/submission/comment`, `/build/{buildId}/agent-review`: reviews and certification feedback.
+- `GET /app/{appId}/review`, `/review/stats`: user reviews.
+- `POST …/submission/comment`: replying to a reviewer, and `POST …/agent-review/retry`: rerunning the AI review.
 - Live output of an app on your **own** Homey through the local Homey API (`ManagerDevkit.getAppStdOut`, `GET /std/:session`). That would need a different token (Homey API instead of apps API).
 - A Claude Desktop extension (`.mcpb`) for one-click installation, and a listing in the official MCP registry.
