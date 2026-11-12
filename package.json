@@ -1,0 +1,51 @@
+{
+  "name": "homey-developer-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Homey app developers: crashes, diagnostic reports, builds and install stats of your own apps.",
+  "keywords": [
+    "homey",
+    "athom",
+    "mcp",
+    "model-context-protocol",
+    "homey-app",
+    "developer-tools",
+    "crash-reports"
+  ],
+  "homepage": "https://github.com/lucasvdh/homey-developer-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/lucasvdh/homey-developer-mcp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucasvdh/homey-developer-mcp.git"
+  },
+  "license": "GPL-3.0",
+  "author": "Lucas van der Have",
+  "bin": {
+    "homey-developer-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist/**/*.js",
+    "!dist/**/*.test.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test dist/",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "follow-redirects": "^1.16.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/follow-redirects": "^1.14.4",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}
