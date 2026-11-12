@@ -23,6 +23,10 @@ Homey groups crashes by their exact stack, so an error that mentions a device id
 
 A report or crash is stored on the build the user was running. The tools look at the newest 5 builds by default; pass `builds` or `buildId` to look further back.
 
+## Background
+
+How this server came about, what it is based on and why it works the way it does: [docs/background.md](docs/background.md). What it uses of Athom's apps API, including the format of crash entries and diagnostic reports: [docs/apps-api.md](docs/apps-api.md).
+
 ## Setup
 
 You need your **Personal Access Token** (it starts with `pat-`). You'll find it on [tools.developer.homey.app/me](https://tools.developer.homey.app/me), in the *Personal Access Token* section. Requires Node.js 18 or newer.
