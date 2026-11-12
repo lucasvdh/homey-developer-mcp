@@ -92,7 +92,7 @@ code, pre, kbd { font-family: var(--mono); }
 @media (max-width: 640px) { .top nav .hide-sm { display: none; } }
 
 /* Hero */
-.hero { padding-top: 72px; padding-bottom: 40px; }
+.hero { padding-top: 64px; padding-bottom: 8px; }
 .eyebrow {
   font-family: var(--mono); font-size: 13px; color: var(--accent);
   margin: 0 0 14px;
@@ -101,18 +101,7 @@ code, pre, kbd { font-family: var(--mono); }
   font-size: clamp(32px, 6vw, 52px); line-height: 1.08; letter-spacing: -.025em;
   margin: 0 0 18px; font-weight: 700;
 }
-.hero p.lead { font-size: 19px; color: var(--text-dim); max-width: 640px; margin: 0 0 28px; }
-.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  font: 500 14px var(--sans); padding: 10px 16px; border-radius: 8px;
-  border: 1px solid var(--border-strong); color: var(--text); background: var(--bg-elev);
-}
-.btn:hover { text-decoration: none; border-color: var(--text-faint); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #04130d; }
-.btn.primary:hover { filter: brightness(1.08); }
-.btn svg { width: 16px; height: 16px; }
-
+.hero p.lead { font-size: 19px; color: var(--text-dim); max-width: 640px; margin: 0; }
 /* Code blocks */
 .code {
   position: relative;
@@ -144,7 +133,7 @@ code, pre, kbd { font-family: var(--mono); }
 
 /* Terminal demo */
 .term {
-  margin-top: 44px;
+  margin-top: 28px;
   background: var(--bg-code);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -171,14 +160,13 @@ section h2 .hash { font-family: var(--mono); color: var(--text-faint); font-weig
 section > .wrap > p.sub { color: var(--text-dim); margin: 0 0 24px; max-width: 680px; }
 h3 { font-size: 17px; margin: 28px 0 6px; }
 
-/* Prompts grid */
-.prompts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-.prompt {
-  border: 1px solid var(--border); background: var(--bg-elev); border-radius: 10px;
-  padding: 14px 16px; font-size: 15px;
-}
-.prompt q { quotes: none; color: var(--text); }
-.prompt small { display: block; margin-top: 8px; font: 12px var(--mono); color: var(--text-faint); }
+/* Lists and prose */
+ul.plain { margin: 0; padding-left: 20px; color: var(--text); }
+ul.plain li { margin: 6px 0; }
+ul.plain li::marker { color: var(--accent); }
+.prose p { color: var(--text-dim); margin: 0 0 14px; max-width: 720px; }
+.panel p.before { margin-top: 6px; }
+section.first { padding-top: 40px; }
 
 /* Tool table */
 .tools { width: 100%; border-collapse: collapse; font-size: 14.5px; }
@@ -189,14 +177,6 @@ h3 { font-size: 17px; margin: 28px 0 6px; }
 .tools td .args { display: block; font: 12.5px var(--mono); color: var(--text-faint); margin-top: 3px; }
 .table-scroll { overflow-x: auto; }
 @media (max-width: 640px) { .tools td:first-child { white-space: normal; } }
-
-.note {
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 14px 16px; margin: 20px 0; font-size: 15px; color: var(--text-dim);
-  background: var(--bg-elev);
-}
-.note.warn { border-color: color-mix(in srgb, var(--warn) 35%, var(--border)); background: var(--warn-dim); }
-.note strong { color: var(--text); }
 
 /* Tabs */
 .tabs { margin-top: 8px; }
@@ -225,13 +205,6 @@ ol.steps > li::before {
 ol.steps > li > strong { display: block; margin-bottom: 2px; }
 ol.steps > li > p { margin: 0; color: var(--text-dim); font-size: 15px; }
 
-/* Kinds */
-.kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
-.kind { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--bg-elev); }
-.kind code { display: block; font-size: 12px; color: var(--text-faint); margin-top: 8px; white-space: normal; background: none; border: 0; padding: 0; }
-.kind strong { font-size: 15px; }
-.kind p { margin: 4px 0 0; font-size: 14px; color: var(--text-dim); }
-
 footer { margin-top: 72px; border-top: 1px solid var(--border); padding: 28px 0 48px; font-size: 14px; color: var(--text-faint); }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
 footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
@@ -244,8 +217,8 @@ footer a { color: var(--text-dim); }
   <div class="wrap">
     <a class="brand" href="#"><span>&gt;</span> homey-developer-mcp</a>
     <nav>
-      <a href="#tools">Tools</a>
       <a href="#install">Install</a>
+      <a href="#tools">Tools</a>
       <a class="hide-sm" href="#how">How it works</a>
       <a href="https://github.com/lucasvdh/homey-developer-mcp">GitHub</a>
     </nav>
@@ -256,94 +229,18 @@ footer a { color: var(--text-dim); }
   <div class="wrap hero">
     <p class="eyebrow">// MCP server for Homey app developers</p>
     <h1>Ask your AI assistant why your Homey app crashes.</h1>
-    <p class="lead">Crashes, user-submitted diagnostic reports, builds and install stats of your own Homey apps, straight from Athom's apps API into Claude, Cursor, VS Code or any other MCP client. Optionally release builds and submit them for certification too.</p>
-
-    <div class="code">
-      <pre><span class="p">$ </span>claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp</pre>
-      <button class="copy" data-copy="claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp">copy</button>
-    </div>
-
-    <div class="cta">
-      <a class="btn primary" href="#install">Install guide</a>
-      <a class="btn" href="https://github.com/lucasvdh/homey-developer-mcp">
-        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        Source on GitHub
-      </a>
-    </div>
-
-    <div class="term" aria-label="Example conversation">
-      <div class="term-bar"><i></i><i></i><i></i><b>claude</b></div>
-<pre><span class="you">&gt; Any new diagnostic reports for my thermostat app? What's going wrong?</span>
-
-<span class="tool">● list_diagnostic_reports</span><span class="dim">(appId: "com.example.thermostat")</span>
-<span class="dim">  └ 2 reports in the last 5 builds</span>
-<span class="tool">● get_diagnostic_report</span><span class="dim">(logId: "a1b2c3d4-…")</span>
-<span class="dim">  └ user message, 18 lines of stdout, stderr: ETIMEDOUT</span>
-
-The newest report says the device goes unavailable every evening. The log
-shows the poll interval failing with ETIMEDOUT right after the hub's nightly
-firmware check, so the app gives up instead of retrying. A retry with backoff
-in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pre>
-    </div>
+    <p class="lead">Gives Claude, Cursor, VS Code and other MCP clients access to the crashes, diagnostic reports, builds and install stats of your Homey apps. It can also release builds and submit them for certification.</p>
   </div>
 
-  <section id="ask">
-    <div class="wrap">
-      <h2><span class="hash">#</span>Things to ask</h2>
-      <p class="sub">The tools are built for questions you'd otherwise answer by clicking through the developer tools site, build by build.</p>
-      <div class="prompts">
-        <div class="prompt"><q>What are the most frequent crashes of my app, and where in my code do they come from?</q><small>get_crashes</small></div>
-        <div class="prompt"><q>Summarise the diagnostic reports from this week and tell me which ones share a cause.</q><small>list_diagnostic_reports</small></div>
-        <div class="prompt"><q>Did the crash rate go down since build 41?</q><small>list_builds · get_crashes</small></div>
-        <div class="prompt"><q>Is my latest build through processing yet? What did the reviewer say?</q><small>get_build_status</small></div>
-        <div class="prompt"><q>Release build 42 to test, then submit it for certification.</q><small>release_build · submit_for_certification</small></div>
-        <div class="prompt"><q>How are installs of my apps trending over the last 30 days?</q><small>list_apps · get_install_stats</small></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="tools">
-    <div class="wrap">
-      <h2><span class="hash">#</span>Tools</h2>
-      <p class="sub">Read tools are always available. They cover your own apps and the apps of every Developer Organization you're in.</p>
-      <div class="table-scroll">
-        <table class="tools">
-          <thead><tr><th>Tool</th><th>What it returns</th></tr></thead>
-          <tbody>
-            <tr><td><code>list_apps</code></td><td>Your apps with live and test version, installs, rating and crash counts per build.</td></tr>
-            <tr><td><code>list_builds</code><span class="args">appId, limit?</span></td><td>Builds of an app, newest first, with state, installs and crashes.</td></tr>
-            <tr><td><code>get_crashes</code><span class="args">appId, builds?, buildId?, kind?, limit?</span></td><td>Crashes and unhandled rejections, grouped by error and the file and line in your own code. Errors that only differ in a device id count as one.</td></tr>
-            <tr><td><code>list_diagnostic_reports</code><span class="args">appId, builds?, buildId?</span></td><td>Reports users sent with <em>Create diagnostics report</em>: Log ID, their message and a preview of stderr.</td></tr>
-            <tr><td><code>get_diagnostic_report</code><span class="args">appId, logId, builds?</span></td><td>One report in full: user message, stdout and stderr.</td></tr>
-            <tr><td><code>get_build_status</code><span class="args">appId, buildId</span></td><td>State of a build, why processing failed, reviewer comments and Athom's AI review.</td></tr>
-            <tr><td><code>get_install_stats</code><span class="args">appId, days?, perDriver?</span></td><td>Daily installs, optionally per driver.</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>Write tools</h3>
-      <p style="color:var(--text-dim);margin:0 0 12px;font-size:15px">Only registered when you set <code>HOMEY_MCP_ALLOW_WRITE=1</code>. Without it, your assistant doesn't even see them. They are marked destructive, so clients that support it ask before every call.</p>
-      <div class="table-scroll">
-        <table class="tools">
-          <tbody>
-            <tr><td><code>release_build</code><span class="args">appId, buildId, channel</span></td><td>Puts a build on the <code>test</code> or <code>live</code> channel. Athom only accepts live for a build that passed review.</td></tr>
-            <tr><td><code>submit_for_certification</code><span class="args">appId, buildId, autoRelease?</span></td><td>Sends a build to Athom for review. <code>autoRelease</code> defaults to <code>false</code>, so going live stays a separate step.</td></tr>
-            <tr><td><code>retract_submission</code><span class="args">appId, buildId</span></td><td>Withdraws a build from review.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <section id="install">
+  <section id="install" class="first">
     <div class="wrap">
       <h2><span class="hash">#</span>Install</h2>
-      <p class="sub">You need Node.js 18 or newer and your Athom Personal Access Token. Nothing to clone or build: your MCP client starts the server with <code>npx</code>.</p>
+      <p class="sub">Requires Node.js 18 or newer. Your MCP client starts the server with <code>npx</code>, so there is nothing to clone or build.</p>
 
       <ol class="steps">
         <li>
           <strong>Copy your Personal Access Token</strong>
-          <p>Open <a href="https://tools.developer.homey.app/me">tools.developer.homey.app/me</a>, scroll to <em>Personal Access Token</em> and copy it. It starts with <code>pat-</code>. It's the same token the Homey CLI uses in CI, so treat it like a password.</p>
+          <p>It's on <a href="https://tools.developer.homey.app/me">tools.developer.homey.app/me</a>, under <em>Personal Access Token</em>, and starts with <code>pat-</code>. The Homey CLI uses the same token, so keep it secret.</p>
         </li>
         <li>
           <strong>Add the server to your client</strong>
@@ -361,11 +258,11 @@ in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pr
                 <pre><span class="p">$ </span>claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp</pre>
                 <button class="copy" data-copy="claude mcp add homey-developer --env HOMEY_PAT=pat-... -- npx -y homey-developer-mcp">copy</button>
               </div>
-              <p>Add <code>--scope user</code> to use it in every project. To enable the write tools, add <code>--env HOMEY_MCP_ALLOW_WRITE=1</code>. Check it's connected with <code>/mcp</code>.</p>
+              <p>Add <code>--scope user</code> to use it in every project. Check the connection with <code>/mcp</code>.</p>
             </div>
 
             <div class="panel" role="tabpanel" id="p-cd" aria-labelledby="t-cd" hidden>
-              <p style="margin-top:6px">Settings → Developer → Edit Config opens <code>claude_desktop_config.json</code>. Add the server and restart Claude Desktop.</p>
+              <p class="before">Open Settings → Developer → Edit Config, add this to <code>claude_desktop_config.json</code> and restart Claude Desktop.</p>
               <div class="code">
 <pre>{
   <span class="k">"mcpServers"</span>: {
@@ -381,7 +278,7 @@ in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pr
             </div>
 
             <div class="panel" role="tabpanel" id="p-cu" aria-labelledby="t-cu" hidden>
-              <p style="margin-top:6px">Add this to <code>~/.cursor/mcp.json</code> for every project, or <code>.cursor/mcp.json</code> for one.</p>
+              <p class="before">Add this to <code>~/.cursor/mcp.json</code> for all projects, or <code>.cursor/mcp.json</code> for one.</p>
               <div class="code">
 <pre>{
   <span class="k">"mcpServers"</span>: {
@@ -397,7 +294,7 @@ in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pr
             </div>
 
             <div class="panel" role="tabpanel" id="p-vs" aria-labelledby="t-vs" hidden>
-              <p style="margin-top:6px">Add this to <code>.vscode/mcp.json</code>. VS Code asks for the token the first time and stores it securely, so it never ends up in the file.</p>
+              <p class="before">Add this to <code>.vscode/mcp.json</code>. VS Code asks for the token once and stores it, so it isn't in the file.</p>
               <div class="code">
 <pre>{
   <span class="k">"inputs"</span>: [
@@ -417,7 +314,7 @@ in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pr
             </div>
 
             <div class="panel" role="tabpanel" id="p-ot" aria-labelledby="t-ot" hidden>
-              <p style="margin-top:6px">Any client that runs stdio MCP servers works. Point it at this command and pass the token as an environment variable:</p>
+              <p class="before">Run this as a stdio MCP server:</p>
               <div class="code">
                 <pre><span class="p">$ </span>HOMEY_PAT=pat-... npx -y homey-developer-mcp</pre>
                 <button class="copy" data-copy="HOMEY_PAT=pat-... npx -y homey-developer-mcp">copy</button>
@@ -426,17 +323,78 @@ in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pr
           </div>
         </li>
         <li>
-          <strong>Ask away</strong>
-          <p>Start with <em>"List my Homey apps"</em> to check the token works, then try one of the <a href="#ask">questions above</a>.</p>
+          <strong>Test it</strong>
+          <p>Ask <em>"List my Homey apps"</em>.</p>
         </li>
       </ol>
 
-      <h3>Configuration</h3>
+      <h3>Environment variables</h3>
       <div class="table-scroll">
         <table class="tools">
           <tbody>
-            <tr><td><code>HOMEY_PAT</code></td><td>Required. Your Athom Personal Access Token.</td></tr>
-            <tr><td><code>HOMEY_MCP_ALLOW_WRITE</code></td><td>Set to <code>1</code> to enable <code>release_build</code>, <code>submit_for_certification</code> and <code>retract_submission</code>.</td></tr>
+            <tr><td><code>HOMEY_PAT</code></td><td>Required. Your Personal Access Token.</td></tr>
+            <tr><td><code>HOMEY_MCP_ALLOW_WRITE</code></td><td><code>1</code> enables the <a href="#write">write tools</a>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="ask">
+    <div class="wrap">
+      <h2><span class="hash">#</span>Things to ask</h2>
+      <ul class="plain">
+        <li>Which crashes happen most, and where in my code?</li>
+        <li>What do this week's diagnostic reports say? Do any share a cause?</li>
+        <li>Did crashes go down after build 41?</li>
+        <li>Is my latest build through processing? What did the reviewer say?</li>
+        <li>Release build 42 to test and submit it for certification.</li>
+        <li>How did my installs change over the last 30 days?</li>
+      </ul>
+
+      <div class="term" aria-label="Example conversation">
+        <div class="term-bar"><i></i><i></i><i></i><b>claude</b></div>
+<pre><span class="you">&gt; What do the new diagnostic reports for my thermostat app say?</span>
+
+<span class="tool">● list_diagnostic_reports</span><span class="dim">(appId: "com.example.thermostat")</span>
+<span class="dim">  └ 2 reports in the last 5 builds</span>
+<span class="tool">● get_diagnostic_report</span><span class="dim">(logId: "a1b2c3d4-…")</span>
+<span class="dim">  └ user message, 18 lines of stdout, stderr: ETIMEDOUT</span>
+
+The device goes unavailable every evening. The log shows polling failing
+with ETIMEDOUT after the hub's nightly firmware check, and the app doesn't
+retry. Add a retry with backoff in drivers/thermostat/device.js. <span class="dim">…</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <div class="wrap">
+      <h2><span class="hash">#</span>Tools</h2>
+      <p class="sub">Read tools are always available. They cover your own apps and those of your Developer Organizations.</p>
+      <div class="table-scroll">
+        <table class="tools">
+          <thead><tr><th>Tool</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>list_apps</code></td><td>Your apps: live and test version, installs, rating, crashes.</td></tr>
+            <tr><td><code>list_builds</code><span class="args">appId, limit?</span></td><td>Builds of an app, newest first: state, installs, crashes.</td></tr>
+            <tr><td><code>get_crashes</code><span class="args">appId, builds?, buildId?, kind?, limit?</span></td><td>Crashes and unhandled rejections, grouped by error and the line in your code that caused them.</td></tr>
+            <tr><td><code>list_diagnostic_reports</code><span class="args">appId, builds?, buildId?</span></td><td>Reports users sent from your app's settings: Log ID, their message, start of stderr.</td></tr>
+            <tr><td><code>get_diagnostic_report</code><span class="args">appId, logId, builds?</span></td><td>One report: user message, stdout and stderr.</td></tr>
+            <tr><td><code>get_build_status</code><span class="args">appId, buildId</span></td><td>State of a build, why processing failed, reviewer comments, Athom's AI review.</td></tr>
+            <tr><td><code>get_install_stats</code><span class="args">appId, days?, perDriver?</span></td><td>Installs per day, optionally per driver.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="write">Write tools</h3>
+      <p class="sub">Only available with <code>HOMEY_MCP_ALLOW_WRITE=1</code>. Clients that support it ask for confirmation before each call.</p>
+      <div class="table-scroll">
+        <table class="tools">
+          <tbody>
+            <tr><td><code>release_build</code><span class="args">appId, buildId, channel</span></td><td>Puts a build on <code>test</code> or <code>live</code>. Athom only accepts live after the build passed review.</td></tr>
+            <tr><td><code>submit_for_certification</code><span class="args">appId, buildId, autoRelease?</span></td><td>Sends a build to Athom for review. With <code>autoRelease</code> (default <code>false</code>) it goes live once approved.</td></tr>
+            <tr><td><code>retract_submission</code><span class="args">appId, buildId</span></td><td>Withdraws a build from review.</td></tr>
           </tbody>
         </table>
       </div>
@@ -444,22 +402,21 @@ in drivers/thermostat/device.js would cover it. <span class="dim">…</span></pr
   </section>
 
   <section id="how">
-    <div class="wrap">
+    <div class="wrap prose">
       <h2><span class="hash">#</span>How it works</h2>
-      <p class="sub">The server exchanges your token for a short-lived apps API token, the same way the Homey CLI does, and calls <code>apps-api.athom.com</code>. Athom returns three kinds of entries from one crash endpoint. The server tells them apart by how the entry opens:</p>
-      <div class="kinds">
-        <div class="kind"><strong>Diagnostic report</strong><p>Sent by a user from your app's settings. Split into Log ID, their message, stdout and stderr.</p><code>Note: this log has been manually submitted by a user.</code></div>
-        <div class="kind"><strong>Unhandled rejection</strong><p>A promise you didn't catch. Didn't necessarily crash the app, but counted every time.</p><code>Note: this e-mail is sent because an unhandledRejection occurred…</code></div>
-        <div class="kind"><strong>Crash</strong><p>Everything else: the stack trace itself, starting with the error.</p><code>TypeError: Cannot read properties of undefined…</code></div>
-      </div>
-      <p style="color:var(--text-dim);font-size:15px;margin-top:20px">Homey groups crashes by their exact stack, so an error that mentions a device id gets a separate group per device. <code>get_crashes</code> regroups them by error message and the first frame in your own code, so the counts add up per actual bug. Reports and crashes are stored on the build the user was running; the tools look at your newest 5 builds unless you ask for more.</p>
+      <p>The server exchanges your token for an apps API token, like the Homey CLI does, and reads from <code>apps-api.athom.com</code>.</p>
+      <p>Athom returns crashes, unhandled rejections and diagnostic reports from the same endpoint. The server tells them apart by their first line, and splits diagnostic reports into Log ID, message, stdout and stderr.</p>
+      <p>Homey counts an error that contains a device id separately for every device. <code>get_crashes</code> merges those by error message and the first line of your own code in the stack.</p>
+      <p>Crashes and reports belong to the build the user ran. The tools search your 5 newest builds; pass <code>builds</code> or <code>buildId</code> to go further back.</p>
 
       <h3>Waiting for a build</h3>
-      <p style="color:var(--text-dim);font-size:15px;margin:0">An MCP server only answers when called, so it can't notify you. In Claude Code, run <code>/loop</code> with <code>get_build_status</code> while you wait. For a push notification on your phone, use the flow triggers of <a href="https://homey.app/a/codes.lucasvdh.developer-tools">App Insights for Developers</a> on your Homey.</p>
+      <p>The server can't send notifications. In Claude Code, use <code>/loop</code> to call <code>get_build_status</code> periodically. For notifications on your phone, use the build triggers of <a href="https://homey.app/a/codes.lucasvdh.developer-tools">App Insights for Developers</a> on your Homey.</p>
 
-      <div class="note warn"><strong>Privacy.</strong> Diagnostic reports contain what your users wrote and your app's logs from their Homey, including device names. Whatever the tools return reaches the AI assistant you connect. Only connect one you're comfortable sharing that with.</div>
+      <h3>Privacy</h3>
+      <p>Diagnostic reports contain your users' messages and logs, including device names. The tools pass them to the AI assistant you connect.</p>
 
-      <p style="color:var(--text-dim);font-size:15px">More on the design decisions and the parts of the apps API it relies on: <a href="https://github.com/lucasvdh/homey-developer-mcp/blob/main/docs/background.md">background</a> and <a href="https://github.com/lucasvdh/homey-developer-mcp/blob/main/docs/apps-api.md">apps API notes</a>.</p>
+      <h3>More</h3>
+      <p><a href="https://github.com/lucasvdh/homey-developer-mcp/blob/main/docs/background.md">Design decisions</a> · <a href="https://github.com/lucasvdh/homey-developer-mcp/blob/main/docs/apps-api.md">Apps API notes</a></p>
     </div>
   </section>
 </main>
